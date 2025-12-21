@@ -1,24 +1,73 @@
 from main import BooksCollector
+import pytest
 
-# класс TestBooksCollector объединяет набор тестов, которыми мы покрываем наше приложение BooksCollector
-# обязательно указывать префикс Test
+
 class TestBooksCollector:
+    def test_add_new_book_valid_name(self, collector):
+        collector.add_new_book("Властелин колец")
+        assert "Властелин колец" in collector.books_genre
+        assert collector.books_genre["Властелин колец"] == ""
 
-    # пример теста:
-    # обязательно указывать префикс test_
-    # дальше идет название метода, который тестируем add_new_book_
-    # затем, что тестируем add_two_books - добавление двух книг
-    def test_add_new_book_add_two_books(self):
-        # создаем экземпляр (объект) класса BooksCollector
-        collector = BooksCollector()
+    @pytest.mark.parametrize('book_name, should_be_added', [
+         ('', False),
+         ('Книга', True),
+         ('b' * 40, True),
+         ('b' * 41, False),
+    ])
+    def test_add_new_book_boundary_values(self, collector, book_name, should_be_added):
+        collector.add_new_book(book_name)
+        assert (book_name in collector.books_genre) == should_be_added
 
-        # добавляем две книги
-        collector.add_new_book('Гордость и предубеждение и зомби')
-        collector.add_new_book('Что делать, если ваш кот хочет вас убить')
+    def test_set_book_genre_valid_true(self, collector):
+        collector.add_new_book("Марсианин")
+        collector.set_book_genre("Марсианин", "Фантастика")
+        assert collector.get_book_genre("Марсианин") == "Фантастика"
+        
+    def test_set_book_genre_nonexistent_book_false(self, collector):
+        collector.set_book_genre("Несуществующая", "Комедии")
+        assert "Несуществующая" not in collector.books_genre
+    
+    def test_get_books_with_specific_genre_true(self, collector):
+        collector.add_new_book("Книга1")
+        collector.add_new_book("Книга2")
+        collector.set_book_genre("Книга1", "Фантастика")
+        collector.set_book_genre("Книга2", "Фантастика")
+        books = collector.get_books_with_specific_genre("Фантастика")
+        assert len(books) == 2
+        assert "Книга1" in books and "Книга2" in books
 
-        # проверяем, что добавилось именно две
-        # словарь books_rating, который нам возвращает метод get_books_rating, имеет длину 2
-        assert len(collector.get_books_rating()) == 2
+    def test_get_books_for_children(self, collector):
+        collector.add_new_book("Мультик")
+        collector.add_new_book("Ужастик")
+        collector.set_book_genre("Мультик", "Мультфильмы")
+        collector.set_book_genre("Ужастик", "Ужасы")
+        children_books = collector.get_books_for_children()
+        assert "Мультик" in children_books
+        assert "Ужастик" not in children_books
 
-    # напиши свои тесты ниже
-    # чтобы тесты были независимыми в каждом из них создавай отдельный экземпляр класса BooksCollector()
+    def test_add_book_in_favorites_true(self, collector):
+        collector.add_new_book("Избранная")
+        collector.add_book_in_favorites("Избранная")
+        assert "Избранная" in collector.get_list_of_favorites_books()
+
+    def test_add_book_in_favorites_no_duplicates_false(self, collector):
+        collector.add_new_book("Книга")
+        collector.add_book_in_favorites("Книга")
+        collector.add_book_in_favorites("Книга")
+        assert collector.get_list_of_favorites_books().count("Книга") == 1
+
+    def test_delete_book_from_favorites_true(self, collector):
+        collector.add_new_book("Книга")
+        collector.add_book_in_favorites("Книга")
+        collector.delete_book_from_favorites("Книга")
+        assert "Книга" not in collector.get_list_of_favorites_books()
+
+    def test_get_books_genre_returns_current_dictionary(self, collector):
+        collector.add_new_book("Книга1")
+        collector.add_new_book("Книга2")
+        collector.set_book_genre("Книга1", "Фантастика")
+        assert collector.get_books_genre() == {"Книга1": "Фантастика", "Книга2": ""}
+
+@pytest.fixture
+def collector():
+    return BooksCollector()
