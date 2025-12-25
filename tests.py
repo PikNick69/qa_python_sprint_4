@@ -18,16 +18,18 @@ class TestBooksCollector:
         collector.add_new_book(book_name)
         assert (book_name in collector.books_genre) == should_be_added
 
-    def test_set_book_genre_valid_true(self, collector):
+    def test_set_book_genre_valid(self, collector):
         collector.add_new_book("Марсианин")
         collector.set_book_genre("Марсианин", "Фантастика")
         assert collector.get_book_genre("Марсианин") == "Фантастика"
         
-    def test_set_book_genre_nonexistent_book_false(self, collector):
+    def test_set_book_genre_nonexistent_book(self, collector):
+        collector.add_new_book("Тестовая")
+        initial_state = collector.get_books_genre()
         collector.set_book_genre("Несуществующая", "Комедии")
-        assert "Несуществующая" not in collector.books_genre
+        assert collector.get_books_genre() == initial_state
     
-    def test_get_books_with_specific_genre_true(self, collector):
+    def test_get_books_with_specific_genre(self, collector):
         collector.add_new_book("Книга1")
         collector.add_new_book("Книга2")
         collector.set_book_genre("Книга1", "Фантастика")
@@ -45,18 +47,18 @@ class TestBooksCollector:
         assert "Мультик" in children_books
         assert "Ужастик" not in children_books
 
-    def test_add_book_in_favorites_true(self, collector):
+    def test_add_book_in_favorites(self, collector):
         collector.add_new_book("Избранная")
         collector.add_book_in_favorites("Избранная")
         assert "Избранная" in collector.get_list_of_favorites_books()
 
-    def test_add_book_in_favorites_no_duplicates_false(self, collector):
+    def test_add_book_in_favorites_no_duplicates(self, collector):
         collector.add_new_book("Книга")
         collector.add_book_in_favorites("Книга")
         collector.add_book_in_favorites("Книга")
         assert collector.get_list_of_favorites_books().count("Книга") == 1
 
-    def test_delete_book_from_favorites_true(self, collector):
+    def test_delete_book_from_favorites(self, collector):
         collector.add_new_book("Книга")
         collector.add_book_in_favorites("Книга")
         collector.delete_book_from_favorites("Книга")
